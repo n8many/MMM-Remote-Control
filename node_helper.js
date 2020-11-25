@@ -697,6 +697,16 @@ module.exports = NodeHelper.create(Object.assign({
                 this.controlPm2(res, query);
                 return true;
             }
+            if (query.action === "COMMAND") {
+                if (this.thisConfig.customCommand && this.thisConfig.customCommand[query.command]) {
+                    exec(this.thisConfig.customCommand[query.command], opts, (error, stdout, stderr) => { 
+                        self.checkForExecError(error, stdout, stderr, res, { stdout: stdout });
+                    });
+                } else {
+                    self.sendResponse(res, new Error("Command not found"), query);
+                }
+                return true;
+            }
             if (query.action === "USER_PRESENCE") {
                 this.sendSocketNotification("USER_PRESENCE", query.value);
                 this.userPresence = query.value;
