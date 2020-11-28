@@ -164,7 +164,7 @@ module.exports = NodeHelper.create(Object.assign({
             this.expressApp.get("/remote", function(req, res) {
                 var query = url.parse(req.url, true).query;
 
-                if (query.action) {
+                if (query.action && ["COMMAND"].indexOf(query.action)===-1) {
                     var result = self.executeQuery(query, res);
                     if (result === true) {
                         return;
