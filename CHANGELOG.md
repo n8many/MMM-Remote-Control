@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 - Custom Shell Commands for everyone! (#159)
+- Custom Menus: User Input Field (#181) and Sliders
 
 ## [2.2.2] - 2020-11-24
 
