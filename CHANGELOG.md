@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Custom Shell Commands for everyone! (#159)
 - Custom Menus: User Input Field (#181) and Sliders
 
+### Fixed
+- "TV is off" now detected (#234)
+
+### Changed
+- Now the system used for turn on and off the screen will be `vcgencmd` (#227 and more)
+
 ## [2.2.2] - 2020-11-24
 
 ### Fixed

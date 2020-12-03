@@ -633,16 +633,16 @@ module.exports = NodeHelper.create(Object.assign({
 
         monitorControl: function(action, opts, res) {
             let status = "unknown";
-            let offArr = ["false","TV is Off","standby"];
+            let offArr = ["false","TV is off","standby","display_power=0"];
             let monitorOnCommand = (this.initialized && "monitorOnCommand" in this.thisConfig.customCommand) ?
                 this.thisConfig.customCommand.monitorOnCommand :
-                "tvservice --preferred && sudo chvt 6 && sudo chvt 7";
+                "vcgencmd display_power 1";
             let monitorOffCommand = (this.initialized && "monitorOffCommand" in this.thisConfig.customCommand) ?
                 this.thisConfig.customCommand.monitorOffCommand :
-                "tvservice -o";
+                "vcgencmd display_power 0";
             let monitorStatusCommand = (this.initialized && "monitorStatusCommand" in this.thisConfig.customCommand) ?
                 this.thisConfig.customCommand.monitorStatusCommand :
-                "tvservice --status";
+                "vcgencmd display_power -1";
             switch (action) {
                 case "MONITORSTATUS": exec(monitorStatusCommand, opts, (error, stdout, stderr) => {
                         status = offArr.indexOf(stdout) !== -1 ? "off" : "on";
