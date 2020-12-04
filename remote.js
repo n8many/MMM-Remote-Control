@@ -68,6 +68,8 @@ var Remote = {
             if ("data" in payload) {
                 if (payload.query.data === "config_update") {
                     this.saveConfigCallback(payload);
+                } else if (payload.query.data === "saves") {
+                	this.undoConfigMenuCallback(payload)
                 } else if (payload.query.data === "mmUpdateAvailable") {
                     this.mmUpdateCallback(payload.result);
                 } else if (payload.query.data === "brightness") {
@@ -82,7 +84,9 @@ var Remote = {
                 return;
             }
             if ("code" in payload && payload.code === "restart") {
-                this.offerRestart(payload.info);
+            	var chlog = new showdown.Converter()
+            	chlog.setFlavor('github')
+                this.offerRestart(payload.chlog ? payload.info + "<br><div id='changelog'>" + chlog.makeHtml(payload.chlog) + "</div>": payload.info);
                 return;
             }
             if ("success" in payload) {
@@ -170,7 +174,7 @@ var Remote = {
         var regex = new RegExp(pattern, "i");
         var searchIn = ["author", "desc", "longname", "name"];
 
-        var data = this.savedData.modulesAvailable;
+        var data = this.savedData.moduleAvailable;
         for (var i = 0; i < data.length; i++) {
             var currentData = data[i];
             var id = "install-module-" + i;
@@ -300,9 +304,26 @@ var Remote = {
         if (newMenu === "settings-menu") {
             this.loadConfigModules();
         }
+        if (newMenu === "classes-menu") {
+            this.loadClasses();
+        }
         if (newMenu === "update-menu") {
             this.loadModulesToUpdate();
         }
+        
+        if (newMenu === "main-menu") {
+        	this.loadList("config-modules", "config", function(parent,configData) {
+                
+        		let alertElem = document.getElementById("alert-button")
+        		if(!configData.modules.find(m=>m.module==="alert") && alertElem !== undefined) alertElem.remove();
+                
+                let modConfig = configData.modules.find(m=>m.module==="MMM-Remote-Control").config
+                let classElem = document.getElementById("classes-button")
+                if((!modConfig || !modConfig.classes) && classElem !== undefined) classElem.remove();
+                
+        	})
+        }
+        
         var allMenus = document.getElementsByClassName("menu-element");
 
         for (let i = 0; i < allMenus.length; i++) {
@@ -431,7 +452,7 @@ var Remote = {
         if (result.success) {
             var bgElement = document.getElementById("install-module-" + result.index);
             bgElement.firstChild.className = "fa fa-fw fa-check-circle";
-            this.savedData.modulesAvailable[result.index].installed = true;
+            this.savedData.moduleAvailable[result.index].installed = true;
             this.createAddingPopup(result.index);
         } else {
             symbol.className = "fa fa-fw fa-exclamation-circle";
@@ -1187,6 +1208,33 @@ var Remote = {
             }
         });
     },
+    
+    loadClasses: function() {
+    	var self = this;
+    	
+    	console.log("Loading classes...");
+    	this.loadList("classes", "classes", function(parent, classes) {
+    		for(const i in classes) {
+    			$node = $("<div>").attr("id", "classes-before-result").attr("hidden", "true")
+    			$('#classes-results').append($node)
+    			var content = Object.assign({}, {
+						id: i,
+						text: i,
+						icon: "dot-circle-o",
+						type: "item",
+						action: "MANAGE_CLASSES",
+    				},{
+						content: {
+							payload: {
+								classes: classes[i]
+							}
+    				}
+    			})
+    			if ($(`#${content.id}-button`)) $(`#${content.id}-button`).remove()
+    			self.createMenuElement(content, "classes", $("#classes-before-result"))
+    		}
+    	})
+    },
 
     createAddingPopup: function(index) {
         var self = this;
@@ -1194,7 +1242,7 @@ var Remote = {
             index = parseInt(index);
         }
 
-        var data = this.savedData.modulesAvailable[index];
+        var data = this.savedData.moduleAvailable[index];
         var wrapper = this.getPopupContent();
 
         var name = document.createElement("div");
@@ -1250,7 +1298,7 @@ var Remote = {
 
         console.log("Loading modules to add...");
 
-        this.loadList("add-module", "modulesAvailable", function(parent, modules) {
+        this.loadList("add-module", "moduleAvailable", function(parent, modules) {
             for (var i = 0; i < modules.length; i++) {
                 var symbol = "fa fa-fw fa-cloud";
                 if (modules[i].installed) {
@@ -1280,6 +1328,40 @@ var Remote = {
         wrapper.appendChild(restart);
         this.setStatus("success", false, wrapper);
     },
+    
+    offerReload: function(message) {
+        var wrapper = document.createElement("div");
+
+        var info = document.createElement("span");
+        info.innerHTML = message;
+        wrapper.appendChild(info);
+		
+		var restart = this.createSymbolText("fa fa-fw fa-recycle", this.translate("RESTARTMM"), buttons["restart-mm-button"]);
+        restart.children[1].className += " text";
+        wrapper.appendChild(restart);
+		
+        var reload = this.createSymbolText("fa fa-fw fa-globe", this.translate("REFRESHMM"), buttons["refresh-mm-button"]);
+        reload.children[1].className += " text";
+        wrapper.appendChild(reload);
+        
+        this.setStatus("success", false, wrapper);
+    },
+    
+    offerOptions: function(message, data) {
+    	var wrapper = document.createElement("div");
+    	
+    	var info = document.createElement("span");
+        info.innerHTML = message;
+        wrapper.appendChild(info);
+        
+        for(const b in data) {
+        	var restart = this.createSymbolText("fa fa-fw fa-recycle", b, data[b]);
+        	restart.children[1].className += " text";
+        	wrapper.appendChild(restart);
+        }
+        
+        this.setStatus("success", false, wrapper);
+    },
 
     updateModule: function(module) {
         this.sendSocketNotification("REMOTE_ACTION", { action: "UPDATE", module: module });
@@ -1307,7 +1389,7 @@ var Remote = {
         // also update mm info notification
         this.sendSocketNotification("REMOTE_ACTION", { data: "mmUpdateAvailable" });
 
-        this.loadList("update-module", "modulesInstalled", function(parent, modules) {
+        this.loadList("update-module", "moduleInstalled", function(parent, modules) {
             for (var i = 0; i < modules.length; i++) {
                 var symbol = "fa fa-fw fa-toggle-up";
                 var innerWrapper = document.createElement("div");
@@ -1332,6 +1414,48 @@ var Remote = {
                 parent.appendChild(innerWrapper);
             }
         });
+    },
+    
+    undoConfigMenu: function() {
+    	var self = this;
+
+        if (this.saving) {
+            return;
+        }
+        var undoButton = document.getElementById("undo-config");
+        undoButton.className = undoButton.className.replace(" highlight", "");
+        this.setStatus("loading");
+        this.sendSocketNotification("REMOTE_ACTION", {data: "saves"});
+    },
+    
+    undoConfigMenuCallback: function(result) {
+    	var self = this;
+
+        if (result.success) {
+        	var dates = {};
+        	for(const i in result.data) {
+        		dates[new Date(result.data[i])] = function() {
+        			console.log(result.data[i])
+        			self.undoConfig(result.data[i])
+        		}
+        	}
+        	self.offerOptions(self.translate("DONE"),dates);
+        } else {
+            self.setStatus("error");
+        }
+    },
+    
+    undoConfig: function(date) {
+    	var self = this;
+
+        // prevent saving before current saving is finished
+        if (this.saving) {
+            return;
+        }
+        this.saving = true;
+        this.setStatus("loading");
+        
+        this.sendSocketNotification("UNDO_CONFIG", date);
     },
 
     saveConfig: function() {
@@ -1363,7 +1487,7 @@ var Remote = {
         var self = this;
 
         if (result.success) {
-            self.offerRestart(self.translate("DONE"));
+            self.offerReload(self.translate("DONE"));
         } else {
             self.setStatus("error");
         }
@@ -1380,19 +1504,46 @@ var Remote = {
         $item = $("<div>").attr("id", `${content.id}-button`).addClass(`menu-element button ${menu}-menu`);
         let $mcmIcon = $('<span>').addClass(`fa fa-fw fa-${content.icon}`).attr("aria-hidden", "true");
         let $mcmText = $('<span>').addClass('text').text(content.text);
-        $item.append($mcmIcon).append($mcmText);
+        if (content.icon) $item.append($mcmIcon)
         if (content.type === "menu") {
+            if (content.text) $item.append($mcmText);
             let $mcmArrow = $('<span>').addClass('fa fa-fw fa-angle-right').attr("aria-hidden", "true");
             $item.append($mcmArrow);
             $item.attr("data-parent", menu).attr("data-type", "menu");
             $('#back-button').addClass(`${content.id}-menu`);
             $('#below-fold').addClass(`${content.id}-menu`);
             $item.click(() => { window.location.hash = `${content.id}-menu`; });
+        } else if (content.type === "slider") {
+            if (content.text) $item.append($mcmText.attr("style", "flex: 0 1 auto"));
+            let $contain = $('<div>').attr("style", "flex: 1")
+            let $slide = $('<input>').attr("id", `${content.id}-slider`).addClass("slider")
+            $slide.attr({
+                "type": "range",
+                "min": content.min || 0,
+                "max": content.max || 100,
+                "step": content.step || 10,
+                "value": content.defaultValue || 50
+            })
+            $slide.change(() => {
+                this.sendSocketNotification("REMOTE_ACTION", Object.assign({ action: content.action.toUpperCase() }, { payload:{} }, content.content, { value: document.getElementById(`${content.id}-slider`).value }));
+            })
+            $contain.append($slide);
+            $item.append($contain)
+        } else if (content.type === "input") {
+            $item = $("<input>").addClass(`menu-element ${menu}-menu medium`).attr({
+                "id": `${content.id}-input`,
+                "type": "text",
+                "placeholder": content.text || ""
+            });
+            $item.focusout(() => {
+                this.sendSocketNotification("REMOTE_ACTION", Object.assign({ action: content.action.toUpperCase() }, { payload:{} }, content.content, { value: document.getElementById(`${content.id}-input`).value }));
+            })
         } else if (content.action && content.content) {
+            if (content.text) $item.append($mcmText);
             $item.attr("data-type", "item");
-            let payload = content.content.payload || {};
+            // let payload = content.content.payload || {};
             $item.click(() => {
-                this.sendSocketNotification("REMOTE_ACTION", { action: content.action.toUpperCase(), notification: content.content.notification, payload: payload });
+                this.sendSocketNotification("REMOTE_ACTION", Object.assign({ action: content.action.toUpperCase() }, { payload:{} }, content.content ));
             });
         }
         if ((!window.location.hash && menu !== "main") ||
@@ -1450,6 +1601,9 @@ var buttons = {
     },
     "mirror-link-button": function() {
         window.open("/", "_blank");
+    },
+    "classes-button": function() {
+    	window.location.hash = "classes-menu";
     },
     "back-button": function() {
         if (window.location.hash === "#add-module-menu") {
@@ -1572,6 +1726,9 @@ var buttons = {
         Remote.saveConfig();
     },
 
+    "undo-config": function() {
+        Remote.undoConfigMenu();
+    },
     // main menu
     "save-button": function() {
         Remote.sendSocketNotification("REMOTE_ACTION", { action: "SAVE" });

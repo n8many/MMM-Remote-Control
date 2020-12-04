@@ -4,7 +4,98 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [2.0.1] - Unreleased
+## [2.3.0] - Unreleased
+
+### Added
+- Custom Shell Commands for everyone! (#159)
+- Custom Menus: User Input Field (#181) and Sliders
+
+### Fixed
+- "TV is off" now detected (#234)
+
+### Changed
+- Now the system used for turn on and off the screen will be `vcgencmd` (#227 and more)
+
+## [2.2.2] - 2020-11-24
+
+### Fixed
+- Module Installation now working
+- iframe now working (#161)
+
+## [2.2.1] - 2020-11-18
+
+### Fixed
+- Module Identifier now working as expected (#229)
+- Update Installation seems to work
+
+## [2.2.0] - 2020-11-16
+
+### Fixed
+- Default values now removed from backup (#12)
+- Custom Menus now works as expected
+- API working, not well implemented in the past
+- API userPresence now working as expected
+
+### Added
+- Updates now show if there's an update available every day (#52)
+- Templates for issues and PRs, and also stale for automanagement of issues.
+- Close Dev Tools (#119)
+- Undo Config Implementation [Beta]
+- Classes to show, hide or toggle multiple modules at once (#34)
+- Classes and saves API
+- Changelog of every module updated
+- [Showdown](https://github.com/showdownjs/showdown) implemented in order to show changelog markdown.
+- secureEndpoint config to bypass the non-apikey limitation. This could be dangerous, use it with caution.
+- Added POST support for Monitor API (#200)
+- Added endpoint to edit config file (#206)
+- Endpoint /api/docs now shows you the documentation available for the API. You can test your mirror right there!
+
+### Changed
+- **[lodash](https://lodash.com/) required**. Do `npm install` on the Remote Control module.
+- Alert button don't show up when Alert module isn't active
+- The way monitor turn on and off (#225)
+- Now hide, show or toggle modules also accept arrays
+- /api/test can be reach without any apiKey
+- /api/modules/installed and /available are now /api/module/installed and /available
+- ApiKey required in order to change substantial things on the Mirror
+- Some Endpoints are gonna be deprecated in the future. You can see those inside /api/docs, in the Legacy menu.
+
+### Removed
+- /api/modules it's no longer available, you can use /api/module instead.
+- Postman collection deprecated ~ (Sorry n.n)
+
+## [2.1.0] - 2020-11-01
+
+Hello! Ezequiel here. Just wanted to say thanks for trust in me, in the past days I made a lot of changes into the code, adding some functions that'll surely be in a future release, and also putting everything together in my fork. I answered almost every issue raised, and tried to help every person that use this module. Today, I'm glad to be able to share everything I learned to all of you. I apologize for some fast and uncommented commits, I just thinked that some things needed to be fixed ASAP.
+See you in future commits, issues and PRs :D
+
+### Fixed
+
+- A typo in `es` translation
+- A few typos in README.md (#134 and #149) and API/README.md (#179)
+- Delayed commands should now work (#190)
+- Typo on remote_action (#184)
+- IP now showing (#194)
+- MM restart button don't just stop anymore (#126)
+- Saving config should work as expected now (#153)
+- installer.sh now detects where's the node instalation (#222)
+
+### Added
+
+- Danish translation (#157)
+- Italian translation (#162)
+- Port now showing according to config.js (#98)
+- Custom commands for shutdown and reboot
+
+### Changed
+
+- Overwrite of local changes when updating from a repository
+- Now requires MagicMirror version 2.12
+
+## [2.0.1] - 2020-10-28
+
+**Huge thanks to [@ezeholz](https://github.com/ezeholz)** who has offered to maintain the module fron now on!
+Credit for this (and future) versions and releases goes to @ezeholz (unless noted otherwise).
 
 Now requires MagicMirror version 2.7.
 

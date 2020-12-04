@@ -11,7 +11,7 @@
 
 Module.register("MMM-Remote-Control", {
 
-    requiresVersion: "2.7.0",
+    requiresVersion: "2.12.0",
 
     // Default module config.
     defaults: {
@@ -25,6 +25,7 @@ Module.register("MMM-Remote-Control", {
         this.settingsVersion = 2;
 
         this.addresses = [];
+        this.port = '';
 
         this.brightness = 100;
     },
@@ -40,7 +41,6 @@ Module.register("MMM-Remote-Control", {
             this.sendCurrentData();
         }
         if (notification === "REMOTE_ACTION") {
-            console.log(payload);
             this.sendSocketNotification(notification, payload);
         }
         if (notification === "REGISTER_API") {
@@ -58,6 +58,12 @@ Module.register("MMM-Remote-Control", {
         }  
         if (notification === "IP_ADDRESSES") {
             this.addresses = payload;
+            if (this.data.position) {
+                this.updateDom();
+            }
+        }
+        if (notification === "LOAD_PORT") {
+            this.port = payload;
             if (this.data.position) {
                 this.updateDom();
             }
@@ -123,11 +129,20 @@ Module.register("MMM-Remote-Control", {
         if (notification === "HIDE" || notification === "SHOW" || notification === "TOGGLE") {
             let options = { lockString: this.identifier };
             if (payload.force) { options.force = true; }
-            let modules = (payload.module === "all") ? MM.getModules() :
-                MM.getModules().filter(m => {
-                    return (m.identifier === payload.module || m.name === payload.module);
+            let modules = []
+            if(payload.module !== 'all') {
+                let i = MM.getModules().find(m => {
+                    return (payload.module.includes(m.identifier));
                 });
-            if (typeof modules === "undefined") { return; }
+                if (!i) {
+                    modules = MM.getModules().filter(m => {
+                        return (payload.module.includes(m.name));
+                    });
+                } else modules.push(i)
+            } else {
+                modules = MM.getModules()
+            }
+            if (!modules.length) { return; }
             modules.forEach((mod) => {
                 if (notification === "HIDE" ||
                     (notification === "TOGGLE" && !mod.hidden)) {
@@ -230,10 +245,16 @@ Module.register("MMM-Remote-Control", {
 
     getDom: function() {
         var wrapper = document.createElement("div");
+        var portToShow = ''
         if (this.addresses.length === 0) {
             this.addresses = ["ip-of-your-mirror"];
         }
-        wrapper.innerHTML = "http://" + this.addresses[0] + ":8080/remote.html";
+        switch(this.port) {
+            case '': case '8080': portToShow = ':8080'; break;
+            case '80': portToShow = ''; break;
+            default: portToShow = ':'+this.port; break;
+        }
+        wrapper.innerHTML = "http://" + this.addresses[0] + portToShow +"/remote.html";
         wrapper.className = "normal xsmall";
         return wrapper;
     },
