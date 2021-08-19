@@ -645,13 +645,13 @@ module.exports = NodeHelper.create(Object.assign({
                 "vcgencmd display_power -1";
             switch (action) {
                 case "MONITORSTATUS": exec(monitorStatusCommand, opts, (error, stdout, stderr) => {
-                        status = offArr.indexOf(stdout) !== -1 ? "off" : "on";
+                        status = offArr.indexOf(stdout.trim()) !== -1 ? "off" : "on";
                         this.checkForExecError(error, stdout, stderr, res, { monitor: status });
                         return;
                     });
                     break;
                 case "MONITORTOGGLE": exec(monitorStatusCommand, opts, (error, stdout, stderr) => {
-                        status = offArr.indexOf(stdout) !== -1 ? "off" : "on";
+                        status = offArr.indexOf(stdout.trim()) !== -1 ? "off" : "on";
                         if(status === "on") this.monitorControl("MONITOROFF", opts, res);
                         else this.monitorControl("MONITORON", opts, res);
                         return;
@@ -934,7 +934,7 @@ module.exports = NodeHelper.create(Object.assign({
         },
 
         checkForExecError: function(error, stdout, stderr, res, data) {
-	    console.log(stderr);
+            if(error) console.log(stderr);
             this.sendResponse(res, error, data);
         },
 
