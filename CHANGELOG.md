@@ -1,8 +1,42 @@
 # MMM Remote Control Change Log
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](http://keepachangelog.com/) 
+The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
+
+## [2.3.6] - 2021-08-01
+
+### Fixed
+
+- API now updates the modules list
+
+## [2.3.5] - 2021-07-08
+
+### Added
+
+- Simplified Chinese translation
+- 'PM2 not installed' warning
+
+## [2.3.4] - 2021-04-21
+
+### Added
+- Now you can use MANAGE_CLASSES to use them between modules, instead of just the API
+
+### Fixed
+- Classes now detects when you're using identifiers and names in the same action (#259)
+
+## [2.3.3] - 2021-04-05
+
+### Changed
+- `request` is deprecated inside MM package. Now using `node-fetch` (#257)
+
+## [2.3.2] - 2021-02-19
+
+### Fixed
+- `value` now travels along with the payload when slide or input it's used on Custom Menus. (#251)
+
+### Changed
+- If you use slide or input, and you add a string payload, it'll now be available in the `string` object of the payload.
 
 ## [2.3.1] - 2020-12-29
 
